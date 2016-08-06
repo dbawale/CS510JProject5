@@ -9,20 +9,34 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
-import edu.pdx.cs410J.AbstractAppointment;
+import com.google.gwt.user.datepicker.client.DateBox;
 
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * A basic GWT class that makes sure that we can send an appointment book back from the server
  */
 public class AppointmentBookGwt implements EntryPoint {
   private final Alerter alerter;
+  DateBox startdateBox;
+  DateBox enddateBox;
+  DateBox searchStartDateBox;
+  DateBox searchEndDateBox;
+  Date startDate,endDate;
+  Button newApptSubmitBtn;
+  Button searchApptSubmitBtn;
   HorizontalPanel hpanelmain = new HorizontalPanel();
-  VerticalPanel vpaneltab1 = new VerticalPanel();
+  VerticalPanel vpaneladdappt = new VerticalPanel();
+  VerticalPanel vpanelallappts = new VerticalPanel();
+  VerticalPanel vpanelsearch = new VerticalPanel();
   TabLayoutPanel tabpanel = new TabLayoutPanel(2.0, Style.Unit.EM);
   @VisibleForTesting
   Button button;
+  String helpstring = "This website lets you create an appointment book.\n" +
+          "It also lets you add appointments.\n" +
+          "Functionality for searching for appointments is present.\n" +
+          "Simply navigate through the tabs and try it out yourself!";
 
   public AppointmentBookGwt() {
     this(new Alerter() {
@@ -36,12 +50,21 @@ public class AppointmentBookGwt implements EntryPoint {
   @VisibleForTesting
   AppointmentBookGwt(Alerter alerter) {
     this.alerter = alerter;
-
     addWidgets();
   }
 
   private void addWidgets() {
-    button = new Button("Ping Server");
+    addAllApptsTab();
+    AddAppointmentFormToTab();
+    vpanelallappts.setWidth("100%");
+    tabpanel.add(vpanelallappts,"All Appointments");
+    addSearchAppts();
+
+  }
+
+  private void addAllApptsTab() {
+    button = new Button("Show All");
+    vpanelallappts.add(button);
     button.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent clickEvent) {
@@ -67,7 +90,32 @@ public class AppointmentBookGwt implements EntryPoint {
         });
       }
     });
+  }
 
+  private void addSearchAppts() {
+    HorizontalPanel hpanelsearchstartdate = new HorizontalPanel();
+    hpanelsearchstartdate.add(new Label("Start Date:"));
+    searchStartDateBox = new DateBox();
+    searchStartDateBox.setValue(new Date());
+    hpanelsearchstartdate.add(searchStartDateBox);
+    vpanelsearch.add(hpanelsearchstartdate);
+
+    HorizontalPanel hpanelsearchenddate = new HorizontalPanel();
+    hpanelsearchenddate.add(new Label("End Date:"));
+    searchEndDateBox = new DateBox();
+    searchEndDateBox.setValue(new Date());
+    hpanelsearchenddate.add(searchEndDateBox);
+    vpanelsearch.add(hpanelsearchenddate);
+    vpanelsearch.setWidth("100%");
+
+    searchApptSubmitBtn = new Button("Search!");
+    vpanelsearch.add(searchApptSubmitBtn);
+    tabpanel.add(vpanelsearch,"Search Appointments");
+    tabpanel.add(new Label(this.helpstring),"Help");
+    tabpanel.setHeight("90%");
+  }
+
+  private void AddAppointmentFormToTab() {
     TextBox ownername = new TextBox();
     ownername.setName("Owner");
     ownername.setFocus(true);
@@ -88,23 +136,36 @@ public class AppointmentBookGwt implements EntryPoint {
     descriptionpanel.add(descriptionlabel);
     descriptionpanel.add(description);
 
+    startdateBox = new DateBox();
+    startdateBox.setValue(new Date());
+    enddateBox = new DateBox();
+    enddateBox.setValue(new Date());
     tabpanel.setWidth("100%");
-    vpaneltab1.add(ownerpanel);
-    vpaneltab1.add(descriptionpanel);
-    vpaneltab1.setWidth("100%");
+    vpaneladdappt.add(new Label("Fill in the details, then click Add"));
+    vpaneladdappt.add(new Label("All fields are required"));
+    vpaneladdappt.add(ownerpanel);
+    vpaneladdappt.add(descriptionpanel);
+    HorizontalPanel startdatepanel = new HorizontalPanel();
+    startdatepanel.add(new Label("Start Date: "));
+    startdatepanel.add(startdateBox);
+    vpaneladdappt.add(startdatepanel);
+    HorizontalPanel enddatepanel = new HorizontalPanel();
+    enddatepanel.add(new Label("End Date: "));
+    enddatepanel.add(enddateBox);
+    vpaneladdappt.add(enddatepanel);
+    vpaneladdappt.setWidth("100%");
 
-    vpaneltab1.setCellHeight(ownerpanel,"10%");
-    vpaneltab1.setCellHeight(descriptionpanel,"10%");
-    tabpanel.add(vpaneltab1,"Add Appointment");
-    button.setWidth("50%");
-    button.setHeight("20%");
-    tabpanel.add(button,"Ping Button");
-    tabpanel.setHeight("90%");
-//    vpaneltab1.add(description);
-//    hpanelmain.add(vpaneltab1);
-//    hpanelmain.add(button);
-//    hpanelmain.setWidth("");
-
+    vpaneladdappt.setCellHeight(ownerpanel,"10%");
+    vpaneladdappt.setCellHeight(descriptionpanel,"10%");
+    tabpanel.add(vpaneladdappt,"Add Appointment");
+    newApptSubmitBtn = new Button("Add");
+    vpaneladdappt.add(newApptSubmitBtn);
+    newApptSubmitBtn.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent clickEvent) {
+        alerter.alert("Submit clicked");
+      }
+    });
   }
 
   @Override
