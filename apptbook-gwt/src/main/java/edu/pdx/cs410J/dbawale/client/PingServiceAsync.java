@@ -11,4 +11,10 @@ public interface PingServiceAsync {
    * Return the current date/time on the server
    */
   void ping(AsyncCallback<AppointmentBook> async);
+
+  void getAppts(AsyncCallback<AppointmentBook> async);
+
+  void addAppt(Appointment appt, String owner, AsyncCallback<Void> async);
+
+  void getOwner(AsyncCallback<String> async);
 }

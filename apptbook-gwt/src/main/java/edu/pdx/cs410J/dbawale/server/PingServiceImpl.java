@@ -10,11 +10,29 @@ import edu.pdx.cs410J.dbawale.client.PingService;
  */
 public class PingServiceImpl extends RemoteServiceServlet implements PingService
 {
+  private AppointmentBook book = new AppointmentBook();
+
   @Override
   public AppointmentBook ping() {
     AppointmentBook book = new AppointmentBook();
     book.addAppointment(new Appointment());
     return book;
+  }
+
+  @Override
+  public void addAppt(Appointment appt, String owner) {
+
+      book.addAppointment(appt);
+  }
+
+  @Override
+  public String getOwner() {
+    return book.getOwnerName();
+  }
+
+  @Override
+  public AppointmentBook getAppts() {
+    return this.book;
   }
 
   @Override

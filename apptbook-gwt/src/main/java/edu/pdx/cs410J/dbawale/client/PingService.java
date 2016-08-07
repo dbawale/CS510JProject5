@@ -14,4 +14,9 @@ public interface PingService extends RemoteService {
    */
   public AppointmentBook ping();
 
+  void addAppt(Appointment appt, String owner);
+
+  String getOwner();
+
+  public AppointmentBook getAppts();
 }

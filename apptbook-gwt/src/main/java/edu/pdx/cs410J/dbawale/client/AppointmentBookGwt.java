@@ -6,19 +6,33 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.thirdparty.common.css.compiler.ast.ParseException;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.user.datepicker.client.DateBox;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * A basic GWT class that makes sure that we can send an appointment book back from the server
  */
 public class AppointmentBookGwt implements EntryPoint {
   private final Alerter alerter;
+
+  private String owner;
+  private String descriptionstr;
+  private Date apptstartDate;
+  private Date apptendDate;
+  private Date searchStartDate;
+  private Date searchEndDate;
+
   DateBox startdateBox;
   DateBox enddateBox;
   DateBox searchStartDateBox;
@@ -32,7 +46,8 @@ public class AppointmentBookGwt implements EntryPoint {
   VerticalPanel vpanelsearch = new VerticalPanel();
   TabLayoutPanel tabpanel = new TabLayoutPanel(2.0, Style.Unit.EM);
   @VisibleForTesting
-  Button button;
+  Button button = new Button("Show All");
+
   String helpstring = "This website lets you create an appointment book.\n" +
           "It also lets you add appointments.\n" +
           "Functionality for searching for appointments is present.\n" +
@@ -63,33 +78,62 @@ public class AppointmentBookGwt implements EntryPoint {
   }
 
   private void addAllApptsTab() {
-    button = new Button("Show All");
+
     vpanelallappts.add(button);
     button.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent clickEvent) {
         PingServiceAsync async = GWT.create(PingService.class);
-        async.ping(new AsyncCallback<AppointmentBook>() {
-
+        async.getAppts(new AsyncCallback<AppointmentBook>() {
           @Override
-          public void onFailure(Throwable ex) {
-            alerter.alert(ex.toString());
+          public void onFailure(Throwable throwable) {
+            alerter.alert(throwable.toString());
           }
 
           @Override
-          public void onSuccess(AppointmentBook airline) {
-            StringBuilder sb = new StringBuilder(airline.toString());
-            Collection<Appointment> flights = airline.getAppointments();
-            for (Appointment flight : flights) {
-              sb.append(flight);
-              sb.append("\n");
+          public void onSuccess(AppointmentBook appointmentBook) {
+            ArrayList appts = (ArrayList)appointmentBook.getAppointments();
+            vpanelallappts.add(new Label("There are " + appts.size() + " appointments in this appointment book"));
+            vpanelallappts.add(new Label("These apppointments are: "));
+            for(int i=0;i<appts.size();i++)
+            {
+              Appointment appt = (Appointment)appts.get(i);
+              vpanelallappts.add(new Label( (i+1)+ ": " + appt.description));
+              vpanelallappts.add(new Label( "Starts At: " + appt.getBeginTimeString() + " Ends At: " + appt.getEndTimeString()));
+              long diff = appt.endTime.getTime() - appt.beginTime.getTime();
+              //vpanelallappts.add(new Label("   The duration of this appointment is " + TimeUnit.MILLISECONDS.toMinutes(diff) + " minutes. \n\n");
+              //alerter.alert(appt.toString());
             }
-            alerter.alert(sb.toString());
-
+            button.setEnabled(false);
           }
         });
       }
     });
+//    button.addClickHandler(new ClickHandler() {
+//      @Override
+//      public void onClick(ClickEvent clickEvent) {
+//        PingServiceAsync async = GWT.create(PingService.class);
+//        async.ping(new AsyncCallback<AppointmentBook>() {
+//
+//          @Override
+//          public void onFailure(Throwable ex) {
+//            alerter.alert(ex.toString());
+//          }
+//
+//          @Override
+//          public void onSuccess(AppointmentBook airline) {
+//            StringBuilder sb = new StringBuilder(airline.toString());
+//            Collection<Appointment> flights = airline.getAppointments();
+//            for (Appointment flight : flights) {
+//              sb.append(flight);
+//              sb.append("\n");
+//            }
+//            alerter.alert(sb.toString());
+//
+//          }
+//        });
+//      }
+//    });
   }
 
   private void addSearchAppts() {
@@ -110,13 +154,41 @@ public class AppointmentBookGwt implements EntryPoint {
 
     searchApptSubmitBtn = new Button("Search!");
     vpanelsearch.add(searchApptSubmitBtn);
+    searchApptSubmitBtn.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent clickEvent) {
+        searchStartDate = searchStartDateBox.getValue();
+        searchEndDate = searchEndDateBox.getValue();
+        PingServiceAsync async = GWT.create(PingService.class);
+        async.getAppts(new AsyncCallback<AppointmentBook>() {
+          @Override
+          public void onFailure(Throwable throwable) {
+            alerter.alert("Cannot search on server");
+          }
+
+          @Override
+          public void onSuccess(AppointmentBook appointmentBook) {
+            ArrayList appts = (ArrayList)appointmentBook.getAppointments();
+            for(int i=0;i<appts.size();i++){
+              Appointment appt=(Appointment)appts.get(i);
+
+              //TODO: Implement on server side
+              if(appt.getBeginTime().compareTo(searchStartDate)>=0&&appt.getBeginTime().compareTo(searchEndDate)<=0){
+                vpanelsearch.add(new Label( (i+1)+ ": " + appt.description));
+                vpanelsearch.add(new Label( "Starts At: " + appt.getBeginTimeString() + " Ends At: " + appt.getEndTimeString()));
+              }
+            }
+          }
+        });
+      }
+    });
     tabpanel.add(vpanelsearch,"Search Appointments");
     tabpanel.add(new Label(this.helpstring),"Help");
     tabpanel.setHeight("90%");
   }
 
   private void AddAppointmentFormToTab() {
-    TextBox ownername = new TextBox();
+    final TextBox ownername = new TextBox();
     ownername.setName("Owner");
     ownername.setFocus(true);
     Label ownerlabel = new Label("Owner:");
@@ -127,7 +199,7 @@ public class AppointmentBookGwt implements EntryPoint {
     ownerpanel.add(ownername);
 
 
-    TextBox description = new TextBox();
+    final TextBox description = new TextBox();
     description.setName("Description");
     Label descriptionlabel = new Label("Description:");
     descriptionlabel.setWidth("50%");
@@ -163,7 +235,58 @@ public class AppointmentBookGwt implements EntryPoint {
     newApptSubmitBtn.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent clickEvent) {
-        alerter.alert("Submit clicked");
+        if(!ownername.getValue().equals("")&&!description.getValue().equals("")&& startdateBox.getValue()!=null && enddateBox.getValue()!=null) {
+          alerter.alert(ownername.getText() + description.getText() + startdateBox.getValue().toString() + enddateBox.getValue().toString());
+          //if(dateTimeFormat.parse(startdateBox,"yyyy-MM-dd HH:mm",true))
+          //alerter.alert(DateTimeFormat.getShortDateTimeFormat().format(startdateBox.getValue()));
+          //perform input validation here
+          //TODO: Input validation
+
+          owner = ownername.getText();
+          descriptionstr = description.getText();
+          apptstartDate= startdateBox.getValue();
+          apptendDate = enddateBox.getValue();
+
+          PingServiceAsync async = GWT.create(PingService.class);
+          async.getOwner(new AsyncCallback<String>() {
+            @Override
+            public void onFailure(Throwable throwable) {
+              alerter.alert("Could not add appointment");
+            }
+
+            @Override
+            public void onSuccess(String s) {
+              //TODO: Figure out owner problem
+              if(!s.equals(owner)&&!s.equals(null))
+              {
+                alerter.alert("Owner name not found on server");
+              }
+              else{
+                //async call to add appointment
+                PingServiceAsync async1 = GWT.create(PingService.class);
+                async1.addAppt(new Appointment(descriptionstr, apptstartDate, apptendDate), owner, new AsyncCallback<Void>() {
+                  @Override
+                  public void onFailure(Throwable throwable) {
+                    alerter.alert("Could not add appointment");
+                  }
+
+                  @Override
+                  public void onSuccess(Void aVoid) {
+                    alerter.alert("Appointment added!");
+                  }
+                });
+              }
+            }
+          });
+        }
+        else
+        {
+          alerter.alert("All fields are required!");
+        }
+        ownername.setText("");
+        description.setText("");
+        startdateBox.setValue(null);
+        enddateBox.setValue(null);
       }
     });
   }
@@ -172,6 +295,18 @@ public class AppointmentBookGwt implements EntryPoint {
   public void onModuleLoad() {
     RootLayoutPanel rootPanel = RootLayoutPanel.get();
 //    rootPanel.add(button);
+    tabpanel.addSelectionHandler(new SelectionHandler<Integer>() {
+      @Override
+      public void onSelection(SelectionEvent<Integer> selectionEvent) {
+        int tabid = selectionEvent.getSelectedItem();
+        if(tabid == 1)
+        {
+          vpanelallappts.clear();
+          button.setEnabled(true);
+          vpanelallappts.add(button);
+        }
+      }
+    });
     rootPanel.add(tabpanel);
   }
 
