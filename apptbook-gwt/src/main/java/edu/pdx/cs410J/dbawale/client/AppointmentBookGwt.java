@@ -96,13 +96,14 @@ public class AppointmentBookGwt implements EntryPoint {
           @Override
           public void onSuccess(AppointmentBook appointmentBook) {
             ArrayList appts = (ArrayList)appointmentBook.getAppointments();
+            vpanelallappts.add(new Label("The owner of this appointment book is: "+ appointmentBook.getOwnerName()));
             vpanelallappts.add(new Label("There are " + appts.size() + " appointments in this appointment book"));
             vpanelallappts.add(new Label("These apppointments are: "));
             for(int i=0;i<appts.size();i++)
             {
               Appointment appt = (Appointment)appts.get(i);
               vpanelallappts.add(new Label( (i+1)+ ": " + appt.description));
-              vpanelallappts.add(new Label( "Starts At: " + appt.getBeginTimeString() + " Ends At: " + appt.getEndTimeString()));
+              vpanelallappts.add(new Label( "Starts At: " + appt.getBeginTimeString() + "     Ends At: " + appt.getEndTimeString()));
               long diff = appt.endTime.getTime() - appt.beginTime.getTime();
               //vpanelallappts.add(new Label("   The duration of this appointment is " + TimeUnit.MILLISECONDS.toMinutes(diff) + " minutes. \n\n");
               //alerter.alert(appt.toString());
