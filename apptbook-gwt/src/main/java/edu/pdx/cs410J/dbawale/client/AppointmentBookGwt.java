@@ -15,6 +15,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.user.datepicker.client.DateBox;
 
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -44,6 +45,8 @@ public class AppointmentBookGwt implements EntryPoint {
   VerticalPanel vpaneladdappt = new VerticalPanel();
   VerticalPanel vpanelallappts = new VerticalPanel();
   VerticalPanel vpanelsearch = new VerticalPanel();
+  HorizontalPanel hpanelsearchstartdate;
+  HorizontalPanel hpanelsearchenddate;
   TabLayoutPanel tabpanel = new TabLayoutPanel(2.0, Style.Unit.EM);
   @VisibleForTesting
   Button button = new Button("Show All");
@@ -137,14 +140,54 @@ public class AppointmentBookGwt implements EntryPoint {
   }
 
   private void addSearchAppts() {
-    HorizontalPanel hpanelsearchstartdate = new HorizontalPanel();
+    addWidgetsToSearchTab();
+    searchApptSubmitBtn.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent clickEvent) {
+        searchStartDate = searchStartDateBox.getValue();
+        searchEndDate = searchEndDateBox.getValue();
+//        alerter.alert(DateTimeFormat.getShortDateTimeFormat().format(searchStartDate));
+//        alerter.alert(DateTimeFormat.getShortDateTimeFormat().format(searchEndDate));
+        PingServiceAsync async = GWT.create(PingService.class);
+        async.search(searchStartDate, searchEndDate, new AsyncCallback<ArrayList<Appointment>>() {
+          @Override
+          public void onFailure(Throwable throwable) {
+            alerter.alert("Error searching on server");
+          }
+
+          @Override
+          public void onSuccess(ArrayList<Appointment> appointments) {
+            int i=1;
+            if(appointments.size()>0) {
+              vpanelsearch.add(new Label("The search returned " + appointments.size() + " appointments. These are:"));
+              for (Appointment appt : appointments) {
+                vpanelsearch.add(new Label(i + ": " + appt.description));
+                vpanelsearch.add(new Label("Starts At: " + appt.getBeginTimeString() + " Ends At: " + appt.getEndTimeString()));
+                i++;
+              }
+            }
+            else {
+              alerter.alert("No appointments in given time range");
+            }
+            searchApptSubmitBtn.setEnabled(false);
+          }
+        });
+      }
+    });
+    tabpanel.add(vpanelsearch,"Search Appointments");
+    tabpanel.add(new Label(this.helpstring),"Help");
+    tabpanel.setHeight("90%");
+  }
+
+  private void addWidgetsToSearchTab() {
+    hpanelsearchstartdate = new HorizontalPanel();
     hpanelsearchstartdate.add(new Label("Start Date:"));
     searchStartDateBox = new DateBox();
     searchStartDateBox.setValue(new Date());
     hpanelsearchstartdate.add(searchStartDateBox);
     vpanelsearch.add(hpanelsearchstartdate);
 
-    HorizontalPanel hpanelsearchenddate = new HorizontalPanel();
+    hpanelsearchenddate = new HorizontalPanel();
     hpanelsearchenddate.add(new Label("End Date:"));
     searchEndDateBox = new DateBox();
     searchEndDateBox.setValue(new Date());
@@ -154,37 +197,6 @@ public class AppointmentBookGwt implements EntryPoint {
 
     searchApptSubmitBtn = new Button("Search!");
     vpanelsearch.add(searchApptSubmitBtn);
-    searchApptSubmitBtn.addClickHandler(new ClickHandler() {
-      @Override
-      public void onClick(ClickEvent clickEvent) {
-        searchStartDate = searchStartDateBox.getValue();
-        searchEndDate = searchEndDateBox.getValue();
-        PingServiceAsync async = GWT.create(PingService.class);
-        async.getAppts(new AsyncCallback<AppointmentBook>() {
-          @Override
-          public void onFailure(Throwable throwable) {
-            alerter.alert("Cannot search on server");
-          }
-
-          @Override
-          public void onSuccess(AppointmentBook appointmentBook) {
-            ArrayList appts = (ArrayList)appointmentBook.getAppointments();
-            for(int i=0;i<appts.size();i++){
-              Appointment appt=(Appointment)appts.get(i);
-
-              //TODO: Implement on server side
-              if(appt.getBeginTime().compareTo(searchStartDate)>=0&&appt.getBeginTime().compareTo(searchEndDate)<=0){
-                vpanelsearch.add(new Label( (i+1)+ ": " + appt.description));
-                vpanelsearch.add(new Label( "Starts At: " + appt.getBeginTimeString() + " Ends At: " + appt.getEndTimeString()));
-              }
-            }
-          }
-        });
-      }
-    });
-    tabpanel.add(vpanelsearch,"Search Appointments");
-    tabpanel.add(new Label(this.helpstring),"Help");
-    tabpanel.setHeight("90%");
   }
 
   private void AddAppointmentFormToTab() {
@@ -211,7 +223,9 @@ public class AppointmentBookGwt implements EntryPoint {
     startdateBox = new DateBox();
     startdateBox.setValue(new Date());
     enddateBox = new DateBox();
+
     enddateBox.setValue(new Date());
+
     tabpanel.setWidth("100%");
     vpaneladdappt.add(new Label("Fill in the details, then click Add"));
     vpaneladdappt.add(new Label("All fields are required"));
@@ -236,15 +250,16 @@ public class AppointmentBookGwt implements EntryPoint {
       @Override
       public void onClick(ClickEvent clickEvent) {
         if(!ownername.getValue().equals("")&&!description.getValue().equals("")&& startdateBox.getValue()!=null && enddateBox.getValue()!=null) {
-          alerter.alert(ownername.getText() + description.getText() + startdateBox.getValue().toString() + enddateBox.getValue().toString());
+         // alerter.alert(ownername.getText() + description.getText() + startdateBox.getValue().toString() + enddateBox.getValue().toString());
           //if(dateTimeFormat.parse(startdateBox,"yyyy-MM-dd HH:mm",true))
           //alerter.alert(DateTimeFormat.getShortDateTimeFormat().format(startdateBox.getValue()));
           //perform input validation here
-          //TODO: Input validation
+
 
           owner = ownername.getText();
           descriptionstr = description.getText();
           apptstartDate= startdateBox.getValue();
+
           apptendDate = enddateBox.getValue();
 
           PingServiceAsync async = GWT.create(PingService.class);
@@ -256,7 +271,7 @@ public class AppointmentBookGwt implements EntryPoint {
 
             @Override
             public void onSuccess(String s) {
-              //TODO: Figure out owner problem
+
               if(!s.equals(owner)&&!s.equals(null))
               {
                 alerter.alert("Owner name not found on server");
@@ -281,12 +296,12 @@ public class AppointmentBookGwt implements EntryPoint {
         }
         else
         {
-          alerter.alert("All fields are required!");
+          alerter.alert("All fields are required! If you typed in all fields, check format of date/time.");
         }
         ownername.setText("");
         description.setText("");
-        startdateBox.setValue(null);
-        enddateBox.setValue(null);
+        startdateBox.setValue(new Date());
+        enddateBox.setValue(new Date());
       }
     });
   }
@@ -305,6 +320,15 @@ public class AppointmentBookGwt implements EntryPoint {
           button.setEnabled(true);
           vpanelallappts.add(button);
         }
+        if(tabid ==2)
+        {
+          vpanelsearch.clear();
+          searchApptSubmitBtn.setEnabled(true);
+          vpanelsearch.add(hpanelsearchstartdate);
+          vpanelsearch.add(hpanelsearchenddate);
+          vpanelsearch.add(searchApptSubmitBtn);
+        }
+
       }
     });
     rootPanel.add(tabpanel);

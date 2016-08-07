@@ -39,14 +39,26 @@ public class Appointment extends AbstractAppointment implements Comparable
 //        return new Date();
 //    }
 String description;
-    //String beginTime;
-    //String endTime;
     Date beginTime;
     Date endTime;
 
+    /**
+     * Constructor for Appointment class with no parameters.
+     * Implemented for the sole purpose of dealing with GWT eccentricities.
+     */
     public Appointment()
     {
 
+    }
+
+    @Override
+    public Date getBeginTime(){
+        return this.beginTime;
+    }
+
+    @Override
+    public Date getEndTime(){
+        return this.endTime;
     }
 
     /**
@@ -55,11 +67,6 @@ String description;
      * @param beginTime The time at which the appointment begins
      * @param endTime The time at which the appointment ends
      */
-  /*public Appointment(String description, String beginTime, String endTime) {
-    this.description=description;
-    this.beginTime=beginTime;
-    this.endTime=endTime;
-  }*/
     public Appointment(String description, Date beginTime, Date endTime){
         this.description=description;
         this.beginTime=beginTime;
