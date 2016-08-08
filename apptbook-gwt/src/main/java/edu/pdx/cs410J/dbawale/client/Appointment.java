@@ -9,35 +9,7 @@ import static java.lang.System.exit;
 
 public class Appointment extends AbstractAppointment implements Comparable
 {
-//    @Override
-//    public String getBeginTimeString()
-//    {
-//        return "START " + getBeginTime();
-//    }
-//
-//    @Override
-//    public String getEndTimeString()
-//    {
-//        return "END + " + getEndTime();
-//    }
-//
-//    @Override
-//    public Date getEndTime()
-//    {
-//        return new Date();
-//    }
-//
-//    @Override
-//    public String getDescription()
-//    {
-//        return "My description";
-//    }
-//
-//    @Override
-//    public Date getBeginTime()
-//    {
-//        return new Date();
-//    }
+
 String description;
     Date beginTime;
     Date endTime;
@@ -51,11 +23,19 @@ String description;
 
     }
 
+    /**
+     * Get the begin time of the appointment
+     * @return The begin time
+     */
     @Override
     public Date getBeginTime(){
         return this.beginTime;
     }
 
+    /**
+     * Get the end time of the appointment
+     * @return The end time
+     */
     @Override
     public Date getEndTime(){
         return this.endTime;
