@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A basic GWT class that makes sure that we can send an appointment book back from the server
+ * The GWT class for the appointment book application
  */
 public class AppointmentBookGwt implements EntryPoint {
   private final Alerter alerter;
@@ -56,6 +56,10 @@ public class AppointmentBookGwt implements EntryPoint {
           "Functionality for searching for appointments is present.\n" +
           "Simply navigate through the tabs and try it out yourself!";
 
+  /**
+   * Constructor for AppointmentBookGwt
+   * Creates a concrete implementation of Alerter
+   */
   public AppointmentBookGwt() {
     this(new Alerter() {
       @Override
@@ -65,12 +69,19 @@ public class AppointmentBookGwt implements EntryPoint {
     });
   }
 
+  /**
+   * Constructor for AppointmentBookGwt with
+   * @param alerter
+     */
   @VisibleForTesting
   AppointmentBookGwt(Alerter alerter) {
     this.alerter = alerter;
     addWidgets();
   }
 
+  /**
+   * Calls methods to add widgets to the tabbed interface
+   */
   private void addWidgets() {
     addAllApptsTab();
     AddAppointmentFormToTab();
@@ -80,6 +91,9 @@ public class AppointmentBookGwt implements EntryPoint {
 
   }
 
+  /**
+   * Adds widgets to the 'All Appointments' tab
+   */
   private void addAllApptsTab() {
 
     vpanelallappts.add(button);
@@ -113,33 +127,11 @@ public class AppointmentBookGwt implements EntryPoint {
         });
       }
     });
-//    button.addClickHandler(new ClickHandler() {
-//      @Override
-//      public void onClick(ClickEvent clickEvent) {
-//        PingServiceAsync async = GWT.create(PingService.class);
-//        async.ping(new AsyncCallback<AppointmentBook>() {
-//
-//          @Override
-//          public void onFailure(Throwable ex) {
-//            alerter.alert(ex.toString());
-//          }
-//
-//          @Override
-//          public void onSuccess(AppointmentBook airline) {
-//            StringBuilder sb = new StringBuilder(airline.toString());
-//            Collection<Appointment> flights = airline.getAppointments();
-//            for (Appointment flight : flights) {
-//              sb.append(flight);
-//              sb.append("\n");
-//            }
-//            alerter.alert(sb.toString());
-//
-//          }
-//        });
-//      }
-//    });
   }
 
+  /**
+   * Creates the interface to search appointments
+   */
   private void addSearchAppts() {
     addWidgetsToSearchTab();
     searchApptSubmitBtn.addClickHandler(new ClickHandler() {
@@ -180,6 +172,9 @@ public class AppointmentBookGwt implements EntryPoint {
     tabpanel.setHeight("90%");
   }
 
+  /**
+   * Adds appropriate widgets to the search tab
+   */
   private void addWidgetsToSearchTab() {
     hpanelsearchstartdate = new HorizontalPanel();
     hpanelsearchstartdate.add(new Label("Start Date:"));
@@ -200,6 +195,9 @@ public class AppointmentBookGwt implements EntryPoint {
     vpanelsearch.add(searchApptSubmitBtn);
   }
 
+  /**
+   * Adds the "Create Appointment" tab to the tablayout
+   */
   private void AddAppointmentFormToTab() {
     final TextBox ownername = new TextBox();
     ownername.setName("Owner");
@@ -307,6 +305,9 @@ public class AppointmentBookGwt implements EntryPoint {
     });
   }
 
+  /**
+   * This method is executed when the module loads
+   */
   @Override
   public void onModuleLoad() {
     RootLayoutPanel rootPanel = RootLayoutPanel.get();
@@ -335,6 +336,9 @@ public class AppointmentBookGwt implements EntryPoint {
     rootPanel.add(tabpanel);
   }
 
+  /**
+   * Interface for alerter
+   */
   @VisibleForTesting
   interface Alerter {
     void alert(String message);
