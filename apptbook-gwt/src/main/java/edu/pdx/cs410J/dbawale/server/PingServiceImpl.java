@@ -71,7 +71,7 @@ public class PingServiceImpl extends RemoteServiceServlet implements PingService
     ArrayList<Appointment> toret = new ArrayList<>();
     for(Appointment appt : appts)
     {
-      if(appt.getBeginTime().compareTo(start)>=0&&appt.getEndTime().compareTo(end)<=0)
+      if(appt.getBeginTime().compareTo(start)>=0&&appt.getBeginTime().compareTo(end)<=0)
       {
         toret.add(appt);
       }
