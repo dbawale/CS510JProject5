@@ -245,6 +245,14 @@ public class AppointmentBookGwt implements EntryPoint {
     tabpanel.add(vpaneladdappt,"Add Appointment");
     newApptSubmitBtn = new Button("Add");
     vpaneladdappt.add(newApptSubmitBtn);
+    vpaneladdappt.add(new Label("Note:"));
+    vpaneladdappt.add(new Label("1. Owner name will be automatically generated once first appointment has been created"));
+    vpaneladdappt.add(new Label("2. Click on the date/time text box to bring up a date picker, select the date, then edit the time"));
+    vpaneladdappt.add(new Label("3. Date/Time can be in any format. For example:"));
+    vpaneladdappt.add(new Label("2016 Aug 8 12:00:00"));
+    vpaneladdappt.add(new Label("8/8/2016 12:00 PM"));
+    vpaneladdappt.add(new Label("8/8/2016 23:00"));
+    vpaneladdappt.add(new Label("Incorrect date/time will be marked in red."));
     newApptSubmitBtn.addClickHandler(new ClickHandler() {
       @Override
       public void onClick(ClickEvent clickEvent) {
@@ -297,7 +305,7 @@ public class AppointmentBookGwt implements EntryPoint {
         {
           alerter.alert("All fields are required! If you typed in all fields, check format of date/time.");
         }
-        ownername.setText("");
+        ownername.setText(owner);
         description.setText("");
         startdateBox.setValue(new Date());
         enddateBox.setValue(new Date());
